@@ -1,0 +1,7 @@
+fastapi
+gunicorn
+pydantic
+slack_bolt
+slack_sdk
+structlog
+uvicorn

@@ -1,0 +1,12 @@
+runtime: python310
+entrypoint: gunicorn -k uvicorn.workers.UvicornWorker -b :$PORT --workers 2 --forwarded-allow-ips="*" main:app
+handlers:
+- url: /.*
+  secure: always
+  script: auto
+
+env_variables:
+  SLACK_BOT_TOKEN: ""
+  SLACK_SIGNING_SECRET: ""
+includes:
+  - ./app.env_variables.yaml
