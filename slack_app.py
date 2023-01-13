@@ -9,11 +9,14 @@ from emoji import EmojiInfo, get_emoji
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
-# Setup the slack app itself
+# Setup our Slack Webhook Handler
 slack_app = App()
 slack_app.client.retry_handlers.append(
     # Ensure we follow the backoff instructions
-    RateLimitErrorRetryHandler(max_retry_count=5)  # Yolo
+    RateLimitErrorRetryHandler(
+        # But strong prefer not to drop these, lol
+        max_retry_count=5
+    )
 )
 
 
@@ -38,7 +41,9 @@ def emoji_changed(client, event, payload):
 
     emoji = get_emoji(client, payload["name"], payload["value"])
 
-    # TODO: Figure out if we should special case aliases (e.g. skip them)
+    # TODO: Figure out if we should special case aliases:
+    # * Let users configure if they want to post about aliases
+    # * Batch/debounce the alias posts
     update = EmojiUpdateMessage(emoji=emoji)
 
     resp = client.chat_postMessage(

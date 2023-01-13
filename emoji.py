@@ -67,9 +67,11 @@ def _get_emoji_list(client: WebClient) -> Mapping[str, str]:
         raise ValueError("Could not get emoji list")
 
     if not isinstance(resp.data, dict):
-        raise TypeError("Invalid slackAPI response")
+        raise TypeError("Invalid SlackAPI response")
 
     if resp.data["ok"] is False:
         raise ValueError("Could not get emoji list")
+
+    # 🙏
 
     return resp.data["emoji"]

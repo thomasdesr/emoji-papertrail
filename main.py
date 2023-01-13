@@ -18,9 +18,11 @@ slack_app_handler = SlackRequestHandler(slack_app)
 async def log_requests(request: Request, call_next):
     log = logger.bind(
         request_id=secrets.token_urlsafe(),
-        source=f"{request.client.host}:{request.client.port}"
-        if request.client
-        else "unknown",
+        source=(
+            f"{request.client.host}:{request.client.port}"
+            if request.client
+            else "unknown_client"
+        ),
         host=request.url.hostname,
         path=request.url.path,
         method=request.method,
