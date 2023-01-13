@@ -5,6 +5,7 @@ from slack_bolt import App
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 import structlog
 
+from config import config
 from emoji import EmojiInfo, get_emoji
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
@@ -41,17 +42,25 @@ def emoji_changed(client, event, payload):
 
     emoji = get_emoji(client, payload["name"], payload["value"])
 
-    # TODO: Figure out if we should special case aliases:
-    # * Let users configure if they want to post about aliases
-    # * Batch/debounce the alias posts
+    # TODO: Figure out if we should do something more to special case aliase,
+    # e.g. batch/debounce the alias posts
+    if emoji.is_alias and not config.slack_app.should_report_alias_changes:
+        log.info("Skipping alias post")
+        return {"ok": True}
+
     update = EmojiUpdateMessage(emoji=emoji)
 
     resp = client.chat_postMessage(
-        channel="#emoji-papertrail",
+        channel=config.slack_app.channel,
         text=update.message(),
         blocks=update.blocks(),
     )
-    log.info("Posted to channel", status_code=resp.status_code, data=resp.data)
+    log.info(
+        "Posted to channel",
+        channel=config.slack_app.channel,
+        status_code=resp.status_code,
+        data=resp.data,
+    )
 
     return {"ok": True}
 
