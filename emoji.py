@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from slack_sdk import WebClient
 import structlog
 
-
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 

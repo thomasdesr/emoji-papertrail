@@ -1,0 +1,98 @@
+[tool.ruff]
+target-version = "py37"
+required-version = "0.0.220"
+show-source = true
+format = "grouped"
+
+line-length = 120
+
+fix = true
+
+select = [
+    # pyflakes
+    "F",
+
+    # pycodestyle
+    "E",
+    "W",
+
+    # mccabe
+    "C90",
+
+    # isort
+    "I",
+
+    # pyupgrade
+    "UP",
+
+    # pep3-naming
+    "N",
+
+    # flake8-2020
+    "YTT",
+
+    # flake8-bandit
+    "B",
+
+    # flake8-bugbear
+    "B",
+    "B9",
+
+    # flake8-bulitins
+    "A",
+
+    # flake8-comprehensions
+    "C4",
+
+    # flake8-debugger
+    "T10",
+
+    # flake8-implicit-str-concat
+    "ISC",
+
+    # flake8-import-conventions
+    "ICN",
+
+    # flake8-quotes
+    "Q",
+
+    # # flake8-return, explicitly not turned on because its suggestions are very hit or miss.
+    # "RET",
+
+    # flake8-simplify
+    "SIM",
+
+    # flake8-unused-arguments
+    "ARG",
+
+    # flake8-datetimez
+    "DTZ",
+
+    # pylint
+    "PLC",
+    "PLE",
+    "PLR",
+    "PLW",
+
+    # ruff
+    "RUF",
+]
+
+ignore = [
+    "E501", # Line too long
+
+    "A003", # Class attribute shadowing a bulitin; doesn't have the same issue as variables or arguments since its namespaced by the object.
+]
+
+# Don't get rid of imports in init modules.
+ignore-init-module-imports = true
+
+
+[tool.ruff.pep8-naming]
+# Allow Pydantic's `@validator` decorator to trigger class method treatment.
+classmethod-decorators = ["classmethod", "pydantic.validator", "pydantic.root_validator"]
+
+[tool.ruff.isort]
+force-wrap-aliases = true
+combine-as-imports = true
+force-sort-within-sections = true

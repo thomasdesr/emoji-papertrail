@@ -130,3 +130,6 @@ dmypy.json
 
 # Application
 app.env_variables.yaml
+
+# Nix
+.direnv
