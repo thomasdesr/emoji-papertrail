@@ -15,5 +15,9 @@
 .gitignore
 #!include:.gitignore
 
+# Local dev
+.envrc
 .pre-commit-config.yaml
 flake.*
+local_main.py
+requirements-dev.txt

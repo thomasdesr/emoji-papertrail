@@ -133,3 +133,6 @@ app.env_variables.yaml
 
 # Nix
 .direnv
+
+# Ruff
+.ruff_cache
