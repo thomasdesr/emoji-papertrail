@@ -24,7 +24,7 @@ class Config(BaseSettings):
         env_nested_delimiter = "__"
 
 
-config: Config = Config()  # type: ignore
+config: Config = Config()  # type: ignore[reportGeneralTypeIssues]
 
 if __name__ == "__main__":
     print(config.json(indent=4))

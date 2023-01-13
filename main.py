@@ -1,5 +1,6 @@
 import secrets
 import time
+from typing import Awaitable, Callable
 
 from fastapi import FastAPI, Request, Response
 from slack_bolt.adapter.fastapi import SlackRequestHandler
@@ -15,7 +16,10 @@ slack_app_handler = SlackRequestHandler(slack_app)
 
 
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def log_requests(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
     log = logger.bind(
         request_id=secrets.token_urlsafe(),
         source=(
@@ -45,5 +49,5 @@ async def log_requests(request: Request, call_next):
 
 
 @app.post("/slack/events")
-async def handle_slack_event(request: Request):
+async def handle_slack_event(request: Request) -> Response:
     return await slack_app_handler.handle(request)

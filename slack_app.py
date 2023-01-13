@@ -2,7 +2,9 @@ from typing import Any, List, Mapping
 
 from pydantic import BaseModel
 from slack_bolt import App
+from slack_sdk import WebClient
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
+from slack_sdk.models.blocks import Block, SectionBlock
 import structlog
 
 from config import config
@@ -22,7 +24,11 @@ slack_app.client.retry_handlers.append(
 
 
 @slack_app.event({"type": "emoji_changed", "subtype": "add"})
-def emoji_changed(client, event, payload):
+def emoji_changed(
+    client: WebClient,
+    event: Mapping[str, Any],
+    payload: Mapping[str, Any],
+) -> Mapping[str, Any]:
     """{
         'event_ts': '1671070007.348400',
         'name': 'test-emoji-pls-ignore-1',
@@ -79,24 +85,23 @@ class EmojiUpdateMessage(BaseModel):
             return f"New {emoji_or_alias} added!"
 
     # TODO: Type this at some point
-    def blocks(self) -> List[Mapping[str, Any]]:
-        primary_block = {
-            "type": "section",
-            "text": {
+    def blocks(self) -> List[Block]:
+        primary_block = SectionBlock(
+            text={
                 "text": self.message(),
                 "type": "mrkdwn",
             },
-            "fields": [
+            fields=[
                 {"type": "mrkdwn", "text": "*Name*"},
                 {"type": "mrkdwn", "text": "*Emoji*"},
                 {"type": "mrkdwn", "text": f"`{self.emoji}`"},
                 {"type": "mrkdwn", "text": str(self.emoji)},
             ],
-            "accessory": {
+            accessory={
                 "type": "image",
                 "image_url": self.emoji.image_url,
                 "alt_text": str(self.emoji),
             },
-        }
+        )
 
         return [primary_block]

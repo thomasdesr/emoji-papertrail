@@ -64,13 +64,16 @@ def _get_emoji_list(client: WebClient) -> Mapping[str, str]:
     resp = client.emoji_list()
 
     if resp.status_code != 200:
-        raise ValueError("Could not get emoji list")
+        msg = "Could not get emoji list"
+        raise ValueError(msg)
 
     if not isinstance(resp.data, dict):
-        raise TypeError("Invalid SlackAPI response")
+        msg = "Invalid SlackAPI response"
+        raise TypeError(msg)
 
     if resp.data["ok"] is False:
-        raise ValueError("Could not get emoji list")
+        msg = "Could not get emoji list"
+        raise ValueError(msg)
 
     # 🙏
 

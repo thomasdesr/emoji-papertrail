@@ -22,6 +22,12 @@ select = [
     # isort
     "I",
 
+    # # pydocstyle, explicitly not turned on because I have no standards xD
+    # "D",
+
+    # flake8-bandit
+    "S",
+
     # pyupgrade
     "UP",
 
@@ -31,8 +37,18 @@ select = [
     # flake8-2020
     "YTT",
 
+    # flake8-annotations
+    "ANN",
+
+
     # flake8-bandit
     "B",
+
+    # flake8-blind-except
+    "BLE",
+
+    # flake8-boolean-trap
+    "FBT",
 
     # flake8-bugbear
     "B",
@@ -47,11 +63,20 @@ select = [
     # flake8-debugger
     "T10",
 
+    # flake8-errmsg
+    "EM",
+
     # flake8-implicit-str-concat
     "ISC",
 
     # flake8-import-conventions
     "ICN",
+
+    # # flake8-print, explicitly turned off because it turns out I may actualy want to use print, lol
+    # "T20",
+
+    # flake8-pytest-style
+    "PT",
 
     # flake8-quotes
     "Q",
@@ -62,17 +87,32 @@ select = [
     # flake8-simplify
     "SIM",
 
+    # flake8-tidy-imports
+    "TID",
+
     # flake8-unused-arguments
     "ARG",
 
     # flake8-datetimez
     "DTZ",
 
+    # # eradicate, explicitly not turned on because its suggestions are very hit or miss.
+    # "ERA",
+
+    # pandas-vet
+    "PD",
+
+    # pygrep-hooks
+    "PGH",
+
     # pylint
     "PLC",
     "PLE",
     "PLR",
     "PLW",
+
+    # flake8-pie
+    "PIE",
 
     # ruff
     "RUF",
@@ -82,6 +122,8 @@ ignore = [
     "E501", # Line too long
 
     "A003", # Class attribute shadowing a bulitin; doesn't have the same issue as variables or arguments since its namespaced by the object.
+
+    "ANN101", # Needing to type `self` is dumb.
 ]
 
 # Don't get rid of imports in init modules.
