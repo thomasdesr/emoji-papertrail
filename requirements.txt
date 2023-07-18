@@ -1,6 +1,7 @@
 fastapi
 gunicorn
 pydantic
+pydantic-settings
 slack_bolt
 slack_sdk
 structlog
