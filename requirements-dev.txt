@@ -2,3 +2,5 @@ black
 ruff
 pyyaml
 pre-commit
+time_machine
+pytest

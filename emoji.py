@@ -7,7 +7,7 @@ import structlog
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
-class EmojiInfo(BaseModel):
+class EmojiInfo(BaseModel, frozen=True):
     name: str
     image_url: str
     author: Optional[str] = None
@@ -63,7 +63,7 @@ def _get_emoji_list(client: WebClient) -> Mapping[str, str]:
 
     resp = client.emoji_list()
 
-    if resp.status_code != 200:
+    if resp.status_code != 200:  # noqa: PLR2004
         msg = "Could not get emoji list"
         raise ValueError(msg)
 

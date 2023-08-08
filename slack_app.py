@@ -8,6 +8,7 @@ from slack_sdk.models.blocks import Block, SectionBlock
 import structlog
 
 from config import config
+from debounce import seen_too_recently
 from emoji import EmojiInfo, get_emoji
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
@@ -48,10 +49,17 @@ def emoji_changed(
 
     emoji = get_emoji(client, payload["name"], payload["value"])
 
-    # TODO: Figure out if we should do something more to special case aliase,
-    # e.g. batch/debounce the alias posts
+    # TODO: Figure out if we should do something more to special case alias,
+    # e.g. batch/debounce the alias posts within a certain time period.
     if emoji.is_alias and not config.slack_app.should_report_alias_changes:
         log.info("Skipping alias post")
+        return {"ok": True}
+
+    if seen_too_recently(
+        emoji,
+        debounce_interval=config.slack_app.duplicate_emoji_webhook_debounce_interval,
+    ):
+        log.info("Skipping probably duplicate webhook")
         return {"ok": True}
 
     update = EmojiUpdateMessage(emoji=emoji)
