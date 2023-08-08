@@ -42,7 +42,7 @@ async def log_requests(
     log.info(
         "Request: Stop",
         status_code=response.status_code,
-        process_time="{:.2f}ms".format(process_time),
+        process_time=f"{process_time:.2f}ms",
     )
 
     return response

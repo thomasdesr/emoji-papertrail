@@ -1,6 +1,6 @@
 [tool.ruff]
 target-version = "py37"
-required-version = "0.0.220"
+required-version = "0.0.278"
 show-source = true
 format = "grouped"
 

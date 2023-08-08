@@ -17,8 +17,6 @@ repos:
           - id: detect-private-key
     - repo: https://github.com/charliermarsh/ruff-pre-commit
       # Ruff version.
-      rev: "v0.0.220"
+      rev: "v0.0.278"
       hooks:
           - id: ruff
-            # Respect `exclude` and `extend-exclude` settings.
-            args: ["--force-exclude"]
