@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from pydantic import Field
+from pydantic import Field, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,6 +15,8 @@ class SlackAppConfig(BaseSettings):
 
     # If we recieve seemingly duplicate webhooks within this interval, do not post about it.
     duplicate_emoji_webhook_debounce_interval: timedelta = timedelta(seconds=5)
+
+    redis_host: RedisDsn | None = None
 
 
 class Config(BaseSettings):

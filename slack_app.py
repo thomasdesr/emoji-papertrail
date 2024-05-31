@@ -8,8 +8,8 @@ from slack_sdk.models.blocks import Block, SectionBlock
 import structlog
 
 from config import config
-from debounce import seen_too_recently
 from emoji import EmojiInfo, get_emoji
+from idemptotency import has_handled
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -55,11 +55,8 @@ def emoji_changed(
         log.info("Skipping alias post")
         return {"ok": True}
 
-    if seen_too_recently(
-        emoji,
-        debounce_interval=config.slack_app.duplicate_emoji_webhook_debounce_interval,
-    ):
-        log.info("Skipping probably duplicate webhook")
+    if has_handled(emoji.name, payload["event_ts"]):
+        log.info("Already handled, skipping")
         return {"ok": True}
 
     update = EmojiUpdateMessage(emoji=emoji)

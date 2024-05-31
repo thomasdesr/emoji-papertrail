@@ -6,3 +6,4 @@ slack_bolt
 slack_sdk
 structlog
 uvicorn
+redis[hiredis]
