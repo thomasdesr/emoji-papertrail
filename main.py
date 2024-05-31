@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, Response
 from slack_bolt.adapter.fastapi import SlackRequestHandler
 import structlog
 
+from config import config
 from slack_app import slack_app
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
@@ -14,6 +15,19 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 app = FastAPI()
 slack_app_handler = SlackRequestHandler(slack_app)
 
+@app.middleware("http")
+async def request_id(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
+    request_id = request.headers.get(
+        config.request_id_http_header,
+        f"local:{secrets.token_urlsafe()}",
+    )
+
+    request.state.request_id = request_id
+    return await call_next(request)
+
 
 @app.middleware("http")
 async def log_requests(
@@ -21,12 +35,8 @@ async def log_requests(
     call_next: Callable[[Request], Awaitable[Response]],
 ) -> Response:
     log = logger.bind(
-        request_id=secrets.token_urlsafe(),
-        source=(
-            f"{request.client.host}:{request.client.port}"
-            if request.client
-            else "unknown_client"
-        ),
+        request_id=request.state.request_id,
+        source=(f"{request.client.host}" if request.client else "unknown"),
         host=request.url.hostname,
         path=request.url.path,
         method=request.method,

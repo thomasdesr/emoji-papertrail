@@ -28,6 +28,8 @@ class Config(BaseSettings):
     host: str = Field("127.0.0.1", validation_alias="HOST")
     port: int = Field(8080, validation_alias="PORT")
 
+    request_id_http_header: str = "Fly-Request-Id"
+
     slack_app: SlackAppConfig = SlackAppConfig()
 
 
