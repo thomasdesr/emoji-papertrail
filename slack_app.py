@@ -24,7 +24,7 @@ slack_app.client.retry_handlers.append(
 )
 
 
-@slack_app.event({"type": "emoji_changed", "subtype": "add"})
+@slack_app.event("emoji_changed")
 def emoji_changed(
     client: WebClient,
     event: Mapping[str, Any],
@@ -45,6 +45,10 @@ def emoji_changed(
         emoji_name=payload["name"],
         emoji_url=payload["value"],
     )
+    if event["subtype"] != "add":
+        log.info("Ignoring non-add event")
+        return {"ok": True}
+
     log.info("New Emoji Added!")
 
     emoji = get_emoji(client, payload["name"], payload["value"])
