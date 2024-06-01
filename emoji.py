@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from typing import Optional
 
 from pydantic import BaseModel
@@ -22,43 +22,56 @@ class EmojiInfo(BaseModel, frozen=True):
     def __str__(self) -> str:
         return f":{self.name}:"
 
+    def __repr__(self) -> str:
+        return self.model_dump_json()
 
-def get_emoji(client: WebClient, name: str, url: str | None) -> EmojiInfo:
+    @classmethod
+    def from_emoji_list(
+        cls: type["EmojiInfo"],
+        name: str,
+        url: str | None,
+        current_emoji_set: Mapping[str, "EmojiListEntry"],
+    ) -> "EmojiInfo":
+        if url is None:
+            url = current_emoji_set[name].url
+
+        alias_of = (
+            cls.from_emoji_list(
+                current_emoji_set[url.removeprefix("alias:")].name,
+                None,
+                current_emoji_set,
+            )
+            if url.startswith("alias:")
+            else None
+        )
+
+        return cls(
+            name=name,
+            author=current_emoji_set[name].uploaded_by,
+            image_url=url if alias_of is None else alias_of.image_url,
+            alias_of=alias_of,
+        )
+
+
+def get_emoji(client: WebClient, name: str, url: str | None, *, is_enterprise_tenant: bool = False) -> EmojiInfo:
     log = logger.bind(emoji_name=name, emoji_url=url)
 
-    log.info("Fetching emoji")
+    log.info("Fetching emoji info")
 
-    # When we can, avoid sending the extra API call. Eventually when we want to
-    # support pulling the author of the emoji we'll need to do this on every
-    # call afaik. This should be optional depending on if the Slack Org has
-    # the enterprise APIs.
-    if url is None:
-        log.info("No emoji URL provided, fetching from API")
-        emoji_list = _get_emoji_list(client)
+    _get_emoji = _get_admin_emoji_list if is_enterprise_tenant else _get_emoji_list
 
-        url = emoji_list[name]
+    emoji_list = _get_emoji(client)
 
-    if url.startswith("alias:"):
-        log.info("Emoji is an alias, fetching aliased emoji")
-
-        aliased_emoji = get_emoji(client, url.removeprefix("alias:"), None)
-
-        return EmojiInfo(
-            name=name,
-            image_url=aliased_emoji.image_url,
-            alias_of=aliased_emoji,
-        )
-    return EmojiInfo(
-        name=name,
-        image_url=url,
-    )
+    return EmojiInfo.from_emoji_list(name, url, emoji_list)
 
 
-# TODO: Figure out a caching story for this? It seems expensive to call this
-# every time but nearly every time we need to call this a new emoji was created
-# and so we're gonna need to bust the cache anyways. Hopefully the builtin
-# RateLimitErrorRetryHandler will be good enough.
-def _get_emoji_list(client: WebClient) -> Mapping[str, str]:
+class EmojiListEntry(BaseModel):
+    name: str
+    url: str
+    uploaded_by: str | None = None
+
+
+def _get_emoji_list(client: WebClient) -> Mapping[str, EmojiListEntry]:
     logger.info("Fetching emoji list")
 
     resp = client.emoji_list()
@@ -77,4 +90,18 @@ def _get_emoji_list(client: WebClient) -> Mapping[str, str]:
 
     # 🙏
 
-    return resp.data["emoji"]
+    return {name: EmojiListEntry(name=name, url=url) for name, url in resp.data["emoji"].items()}
+
+
+def _get_admin_emoji_list(
+    client: WebClient,
+) -> Mapping[str, EmojiListEntry]:
+    def _pages() -> Iterable[tuple[str, EmojiListEntry]]:
+        for page in client.admin_emoji_list():
+            for emoji_name, emoji_info in page["emoji"].items():
+                yield (
+                    emoji_name,
+                    EmojiListEntry.model_validate({"name": emoji_name, **emoji_info}),
+                )
+
+    return dict(_pages())
