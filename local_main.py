@@ -11,11 +11,11 @@ if __name__ == "__main__":
     for key, value in env_variables.items():
         os.environ[key] = value
 
-    from config import config
+    from config import server_config
     from main import app
 
     uvicorn.run(
         app,
-        host=config.host,
-        port=config.port,
+        host=server_config.host,
+        port=server_config.port,
     )

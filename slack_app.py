@@ -2,20 +2,49 @@ from collections.abc import Mapping
 from typing import Any
 
 from pydantic import BaseModel
-from slack_bolt import App
+from slack_bolt import App as SlackApp
+from slack_bolt.oauth.oauth_settings import OAuthSettings
 from slack_sdk import WebClient
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from slack_sdk.models.blocks import Block, SectionBlock
 import structlog
 
-from config import config
+from config import BotTokenConfig, SlackOAuthConfig, app_config, app_credentials
 from emoji import EmojiInfo, get_emoji
 from idemptotency import has_handled
+from redis_utils import redis_client
+from slack_enterprise.redis_installation_store import RedisInstallationStore
+from slack_enterprise.redis_oauth_state_store import RedisOAuthStateStore
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
+
+_slack_app_cfg = {}
+if isinstance(app_credentials, SlackOAuthConfig):
+    _oauth_redis = redis_client(str(app_config.redis_host))
+
+    _slack_app_cfg["oauth_settings"] = OAuthSettings(
+        client_id=app_credentials.client_id.get_secret_value(),
+        client_secret=app_credentials.client_secret.get_secret_value(),
+        scopes=app_credentials.bot_scopes,
+        user_scopes=app_credentials.user_scopes,
+        installation_store=RedisInstallationStore(
+            redis_client=_oauth_redis,
+            client_id=app_credentials.client_id.get_secret_value(),
+        ),
+        state_store=RedisOAuthStateStore(
+            redis_client=_oauth_redis,
+            expiration_seconds=600,
+        ),
+    )
+elif isinstance(app_credentials, BotTokenConfig):
+    _slack_app_cfg["token"] = app_credentials.token
+
+
 # Setup our Slack Webhook Handler
-slack_app = App()
+slack_app = SlackApp(
+    **_slack_app_cfg,
+)
 slack_app.client.retry_handlers.append(
     # Ensure we follow the backoff instructions
     RateLimitErrorRetryHandler(
@@ -29,6 +58,7 @@ slack_app.client.retry_handlers.append(
 def emoji_changed(
     client: WebClient,
     event: Mapping[str, Any],
+    context: Mapping[str, Any],
     payload: Mapping[str, Any],
 ) -> Mapping[str, Any]:
     """{
@@ -42,10 +72,7 @@ def emoji_changed(
     log = logger.bind(
         event=event,
         payload=payload,
-        type=payload["type"],
-        subtype=payload["subtype"],
-        emoji_name=payload["name"],
-        emoji_url=payload["value"],
+        **{k: v for k, v in payload.items() if k in ("name", "subtype", "type", "value")},
     )
     if event["subtype"] != "add":
         log.info("Ignoring non-add event")
@@ -53,16 +80,17 @@ def emoji_changed(
 
     log.info("New Emoji Added!")
 
+    user_client = WebClient(token=context["user_token"])
     emoji = get_emoji(
-        client,
+        user_client,
         payload["name"],
         payload["value"],
-        is_enterprise_tenant=(client.auth_test()["is_enterprise_install"]),
+        is_enterprise_tenant=context.get("is_enterprise_install", False),
     )
 
     # TODO: Figure out if we should do something more to special case alias,
     # e.g. batch/debounce the alias posts within a certain time period.
-    if emoji.is_alias and not config.slack_app.should_report_alias_changes:
+    if emoji.is_alias and not app_config.should_report_alias_changes:
         log.info("Skipping alias post")
         return {"ok": True}
 
@@ -73,13 +101,13 @@ def emoji_changed(
     update = EmojiUpdateMessage(emoji=emoji)
 
     resp = client.chat_postMessage(
-        channel=config.slack_app.channel,
+        channel=app_config.channel,
         text=update.message(),
         blocks=update.blocks(),
     )
     log.info(
         "Posted to channel",
-        channel=config.slack_app.channel,
+        channel=app_config.channel,
         status_code=resp.status_code,
         data=resp.data,
     )

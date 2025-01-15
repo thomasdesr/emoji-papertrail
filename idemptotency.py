@@ -1,15 +1,17 @@
 from datetime import UTC, datetime, timedelta
+from typing import TypedDict, Unpack
 
 import redis
-from redis.backoff import ExponentialBackoff
-import redis.exceptions as redis_exceptions
-from redis.retry import Retry
 
-from config import config
+from config import app_config
+from redis_utils import redis_client
 
 
-class FakeRedis(dict[str, tuple[str, datetime]]):
-    def set(self, key: str, value: str, ex: timedelta, **_kwargs: ...) -> str | None:
+class LocalIdempotencyStore(dict[str, tuple[str, datetime]]):
+    class SetKwargs(TypedDict, total=False):
+        get: bool
+
+    def set(self, key: str, value: str, ex: timedelta, **_kwargs: Unpack[SetKwargs]) -> str | None:
         new_value = (value, datetime.now(UTC) + ex)
 
         # Atomic swap
@@ -23,29 +25,20 @@ class FakeRedis(dict[str, tuple[str, datetime]]):
         return before_value if expires_at > datetime.now(UTC) else None
 
 
-if config.slack_app.redis_host is not None:
-    _idempotency_redis = redis.Redis.from_url(
-        f"{config.slack_app.redis_host}",
-        retry=Retry(ExponentialBackoff(), 3),
-        retry_on_error=[
-            redis_exceptions.BusyLoadingError,
-            redis_exceptions.ConnectionError,
-            redis_exceptions.TimeoutError,
-        ],
-    )
-else:
-    _idempotency_redis = FakeRedis()
+_idempotency_redis = (
+    redis_client(str(app_config.redis_host)) if app_config.redis_host is not None else LocalIdempotencyStore()
+)
 
 
 def has_handled(
     emoji_name: str,
     event_ts: str,
-    _redis: redis.Redis | FakeRedis | None = None,
+    _redis: redis.Redis | LocalIdempotencyStore | None = None,
 ) -> bool:
     if _redis is None:
         _redis = _idempotency_redis
 
-    observed_ts = _idempotency_redis.set(
+    observed_ts = _redis.set(
         f"emoji-papertrail:idempotency:{emoji_name}",
         event_ts,
         ex=timedelta(days=7),

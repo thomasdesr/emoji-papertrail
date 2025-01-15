@@ -2,12 +2,12 @@ from collections.abc import Awaitable, Callable
 import secrets
 import time
 
-from fastapi import Request, Response
+from fastapi import HTTPException, Request, Response
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 import structlog
 
-from config import config
+from config import server_config
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -16,11 +16,24 @@ def middleware_stack() -> list[Middleware]:
     return [
         Middleware(BaseHTTPMiddleware, dispatch=f)
         for f in (
+            return_500_on_exception,
             ready,
             request_id,
             log_requests,
         )
     ]
+
+
+async def return_500_on_exception(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
+    try:
+        return await call_next(request)
+    except Exception as e:
+        log = logger.bind(request_id=getattr(request.state, "request_id", None))
+        log.exception("exception thrown during request handling")
+        raise HTTPException(status_code=500) from e
 
 
 async def ready(
@@ -38,7 +51,7 @@ async def request_id(
     call_next: Callable[[Request], Awaitable[Response]],
 ) -> Response:
     request_id = request.headers.get(
-        config.request_id_http_header,
+        server_config.request_id_http_header,
         f"local:{secrets.token_urlsafe()}",
     )
 

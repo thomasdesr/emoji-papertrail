@@ -12,6 +12,7 @@ app = FastAPI(middleware=middleware_stack())
 slack_request_handler = SlackRequestHandler(slack_app)
 
 
+@app.get("/slack/{path:path}")
 @app.post("/slack/events")
 async def handle_slack_event(request: Request) -> Response:
     return await slack_request_handler.handle(

@@ -3,3 +3,5 @@ pyyaml
 pre-commit
 time_machine
 pytest
+hypothesis
+fakeredis
