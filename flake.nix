@@ -12,6 +12,7 @@
           buildInputs = with pkgs; [
             python3
             python3Packages.venvShellHook
+            redis
             stdenv.cc.cc.lib
           ];
 
