@@ -15,5 +15,5 @@ slack_request_handler = SlackRequestHandler(slack_app)
 @app.post("/slack/events")
 async def handle_slack_event(request: Request) -> Response:
     return await slack_request_handler.handle(
-        request, addition_context_properties={"request_id": request.state.request_id}
+        request, addition_context_properties={"request_id": request.state.request_id},
     )

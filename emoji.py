@@ -1,4 +1,5 @@
-from typing import Mapping, Optional
+from collections.abc import Mapping
+from typing import Optional
 
 from pydantic import BaseModel
 from slack_sdk import WebClient
@@ -10,7 +11,7 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 class EmojiInfo(BaseModel, frozen=True):
     name: str
     image_url: str
-    author: Optional[str] = None
+    author: str | None = None
 
     alias_of: Optional["EmojiInfo"] = None
 
@@ -22,7 +23,7 @@ class EmojiInfo(BaseModel, frozen=True):
         return f":{self.name}:"
 
 
-def get_emoji(client: WebClient, name: str, url: Optional[str]) -> EmojiInfo:
+def get_emoji(client: WebClient, name: str, url: str | None) -> EmojiInfo:
     log = logger.bind(emoji_name=name, emoji_url=url)
 
     log.info("Fetching emoji")
@@ -47,11 +48,10 @@ def get_emoji(client: WebClient, name: str, url: Optional[str]) -> EmojiInfo:
             image_url=aliased_emoji.image_url,
             alias_of=aliased_emoji,
         )
-    else:
-        return EmojiInfo(
-            name=name,
-            image_url=url,
-        )
+    return EmojiInfo(
+        name=name,
+        image_url=url,
+    )
 
 
 # TODO: Figure out a caching story for this? It seems expensive to call this

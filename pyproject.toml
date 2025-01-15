@@ -1,142 +1,30 @@
 [tool.ruff]
-target-version = "py37"
-required-version = "0.0.278"
-show-source = true
-format = "grouped"
+target-version = "py310"
 
 line-length = 120
 
 fix = true
 
-select = [
-    # pyflakes
-    "F",
-
-    # pycodestyle
-    "E",
-    "W",
-
-    # mccabe
-    "C90",
-
-    # isort
-    "I",
-
-    # # pydocstyle, explicitly not turned on because I have no standards xD
-    # "D",
-
-    # flake8-bandit
-    "S",
-
-    # pyupgrade
-    "UP",
-
-    # pep3-naming
-    "N",
-
-    # flake8-2020
-    "YTT",
-
-    # flake8-annotations
-    "ANN",
-
-
-    # flake8-bandit
-    "B",
-
-    # flake8-blind-except
-    "BLE",
-
-    # flake8-boolean-trap
-    "FBT",
-
-    # flake8-bugbear
-    "B",
-    "B9",
-
-    # flake8-bulitins
-    "A",
-
-    # flake8-comprehensions
-    "C4",
-
-    # flake8-debugger
-    "T10",
-
-    # flake8-errmsg
-    "EM",
-
-    # flake8-implicit-str-concat
-    "ISC",
-
-    # flake8-import-conventions
-    "ICN",
-
-    # # flake8-print, explicitly turned off because it turns out I may actualy want to use print, lol
-    # "T20",
-
-    # flake8-pytest-style
-    "PT",
-
-    # flake8-quotes
-    "Q",
-
-    # # flake8-return, explicitly not turned on because its suggestions are very hit or miss.
-    # "RET",
-
-    # flake8-simplify
-    "SIM",
-
-    # flake8-tidy-imports
-    "TID",
-
-    # flake8-unused-arguments
-    "ARG",
-
-    # flake8-datetimez
-    "DTZ",
-
-    # # eradicate, explicitly not turned on because its suggestions are very hit or miss.
-    # "ERA",
-
-    # pandas-vet
-    "PD",
-
-    # pygrep-hooks
-    "PGH",
-
-    # pylint
-    "PLC",
-    "PLE",
-    "PLR",
-    "PLW",
-
-    # flake8-pie
-    "PIE",
-
-    # ruff
-    "RUF",
-]
+[tool.ruff.lint]
+select = ["ALL"]
 
 ignore = [
+    # pydocstyle, explicitly not turned on because I have no standards xD
+    "D",
+
+    # flake8-todos, flake8-fixme, etc are all disabled because I want to keep todos around for now
+    "TD",
+    "FIX",
+
     "E501", # Line too long
 
     "A003", # Class attribute shadowing a bulitin; doesn't have the same issue as variables or arguments since its namespaced by the object.
-
-    "ANN101", # Needing to type `self` is dumb.
 ]
 
-# Don't get rid of imports in init modules.
-ignore-init-module-imports = true
-
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "*_test.py" = ["ANN201", "S101"]
 
-[tool.ruff.pep8-naming]
-# Allow Pydantic's `@validator` decorator to trigger class method treatment.
-classmethod-decorators = ["classmethod", "pydantic.validator", "pydantic.root_validator"]
-
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 force-wrap-aliases = true
 combine-as-imports = true
 force-sort-within-sections = true

@@ -1,4 +1,5 @@
-from typing import Any, List, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from pydantic import BaseModel
 from slack_bolt import App
@@ -19,8 +20,8 @@ slack_app.client.retry_handlers.append(
     # Ensure we follow the backoff instructions
     RateLimitErrorRetryHandler(
         # But strong prefer not to drop these, lol
-        max_retry_count=5
-    )
+        max_retry_count=5,
+    ),
 )
 
 
@@ -36,7 +37,8 @@ def emoji_changed(
         'subtype': 'add',
         'type': 'emoji_changed',
         'value': 'https://emoji.slack-edge.com/EXAMPLE/test-emoji-pls-ignore-1/0da8457a872dfe8a.png',
-    }"""
+    }
+    """
     log = logger.bind(
         event=event,
         payload=payload,
@@ -90,11 +92,10 @@ class EmojiUpdateMessage(BaseModel):
 
         if self.emoji.author is not None:
             return f"New {emoji_or_alias} added by @{self.emoji.author}!"
-        else:
-            return f"New {emoji_or_alias} added!"
+        return f"New {emoji_or_alias} added!"
 
     # TODO: Type this at some point
-    def blocks(self) -> List[Block]:
+    def blocks(self) -> list[Block]:
         primary_block = SectionBlock(
             text={
                 "text": self.message(),

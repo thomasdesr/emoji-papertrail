@@ -17,6 +17,6 @@ repos:
           - id: detect-private-key
     - repo: https://github.com/charliermarsh/ruff-pre-commit
       # Ruff version.
-      rev: "v0.0.278"
+      rev: "v0.9.1"
       hooks:
           - id: ruff

@@ -21,7 +21,8 @@ class SlackAppConfig(BaseSettings):
 
 class Config(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="EMOJI_PAPERTRAIL_", env_nested_delimiter="__"
+        env_prefix="EMOJI_PAPERTRAIL_",
+        env_nested_delimiter="__",
     )
 
     # host & port env vars determined by Google App Engine
@@ -36,4 +37,4 @@ class Config(BaseSettings):
 config: Config = Config()  # type: ignore[reportGeneralTypeIssues]
 
 if __name__ == "__main__":
-    print(config.json(indent=4))
+    print(config.json(indent=4))  # noqa: T201 # Debugging output left for convenience
