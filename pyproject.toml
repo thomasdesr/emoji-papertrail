@@ -19,6 +19,8 @@ ignore = [
     "E501", # Line too long
 
     "A003", # Class attribute shadowing a bulitin; doesn't have the same issue as variables or arguments since its namespaced by the object.
+
+    "COM812", # warning: The following rule may cause conflicts when used with the formatter: `COM812`
 ]
 
 [tool.ruff.lint.per-file-ignores]

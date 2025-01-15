@@ -19,4 +19,7 @@ repos:
       # Ruff version.
       rev: "v0.9.1"
       hooks:
-          - id: ruff
+        # Run the linter.
+        - id: ruff
+        # Run the formatter.
+        - id: ruff-format

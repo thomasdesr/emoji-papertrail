@@ -86,9 +86,7 @@ class EmojiUpdateMessage(BaseModel):
     emoji: EmojiInfo
 
     def message(self) -> str:
-        emoji_or_alias = (
-            f"alias of `{self.emoji.alias_of}`" if self.emoji.is_alias else "emoji"
-        )
+        emoji_or_alias = f"alias of `{self.emoji.alias_of}`" if self.emoji.is_alias else "emoji"
 
         if self.emoji.author is not None:
             return f"New {emoji_or_alias} added by @{self.emoji.author}!"
