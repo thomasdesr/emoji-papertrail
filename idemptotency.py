@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import redis
 from redis.backoff import ExponentialBackoff
@@ -10,17 +10,17 @@ from config import config
 
 class FakeRedis(dict[str, tuple[str, datetime]]):
     def set(self, key: str, value: str, ex: timedelta, **_kwargs: ...) -> str | None:
-        new_value = (value, datetime.now(timezone.utc) + ex)
+        new_value = (value, datetime.now(UTC) + ex)
 
         # Atomic swap
         self[key], before = new_value, self.get(key)
 
         before_value, expires_at = before or (
             None,
-            datetime.min.replace(tzinfo=timezone.utc),
+            datetime.min.replace(tzinfo=UTC),
         )
 
-        return before_value if expires_at > datetime.now(timezone.utc) else None
+        return before_value if expires_at > datetime.now(UTC) else None
 
 
 if config.slack_app.redis_host is not None:
