@@ -7,6 +7,5 @@ handlers:
 
 env_variables:
   SLACK_BOT_TOKEN: ""
-  SLACK_SIGNING_SECRET: ""
 includes:
   - ./app.env_variables.yaml

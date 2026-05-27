@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+import os
 from typing import Any
 
 from pydantic import BaseModel
@@ -41,8 +42,14 @@ elif isinstance(app_credentials, BotTokenConfig):
     _slack_app_cfg["token"] = app_credentials.token
 
 
+_signing_secret = os.environ.get("SLACK_SIGNING_SECRET")
+if not _signing_secret:
+    raise RuntimeError("SLACK_SIGNING_SECRET must be set and non-empty")
+
+
 # Setup our Slack Webhook Handler
 slack_app = SlackApp(
+    signing_secret=_signing_secret,
     **_slack_app_cfg,
 )
 slack_app.client.retry_handlers.append(
